@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
+using AlbedoTeam.Identity.Contracts.Requests;
+using AlbedoTeam.Identity.Contracts.Responses;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
@@ -15,8 +17,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
     public class AddGroupToUserConsumer : IConsumer<AddGroupToUser>
     {
         private readonly IAccountService _accountService;
-
-        // private readonly IGroupRepository _groupRepository;
+        private readonly IRequestClient<GetGroup> _client;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<AddGroupToUserConsumer> _logger;
         private readonly IUserRepository _userRepository;
@@ -25,14 +26,14 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 IAccountService accountService,
                 IIdentityServerService identityServer,
                 IUserRepository userRepository,
-                ILogger<AddGroupToUserConsumer> logger)
-            // IGroupRepository groupRepository)
+                ILogger<AddGroupToUserConsumer> logger, 
+                IRequestClient<GetGroup> client)
         {
             _accountService = accountService;
             _identityServer = identityServer;
             _userRepository = userRepository;
             _logger = logger;
-            // _groupRepository = groupRepository;
+            _client = client;
         }
 
         public async Task Consume(ConsumeContext<AddGroupToUser> context)
@@ -65,12 +66,12 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 return;
             }
 
-            // var group = await _groupRepository.FindById(context.Message.AccountId, context.Message.GroupId);
-            // if (group is null)
-            // {
-            //     _logger.LogError("Group not found for id {GroupId}", context.Message.GroupId);
-            //     return;
-            // }
+            var group = await RequestGroup(context.Message.AccountId, context.Message.GroupId);
+            if (group is null)
+            {
+                _logger.LogError("Group not found for id {GroupId}", context.Message.GroupId);
+                return;
+            }
 
             var contains = user.Groups.Contains(context.Message.GroupId);
             if (contains)
@@ -99,6 +100,25 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 context.Message.GroupId,
                 AddedAt = DateTime.UtcNow
             });
+        }
+        
+        private async Task<GroupResponse> RequestGroup(string accountId, string groupId)
+        {
+            var (groupResponse, errorResoponse) = await _client.GetResponse<GroupResponse, ErrorResponse>(new
+            {
+                AccountId = accountId,
+                Id = groupId,
+                ShowDeleted = false
+            });
+
+            if (groupResponse.IsCompletedSuccessfully)
+            {
+                var group = await groupResponse;
+                return group.Message;
+            }
+
+            await errorResoponse;
+            return null;
         }
     }
 }

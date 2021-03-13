@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
+using AlbedoTeam.Identity.Contracts.Requests;
+using AlbedoTeam.Identity.Contracts.Responses;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
@@ -15,24 +17,23 @@ namespace Identity.Business.Users.Consumers.UserConsumers
     public class ChangeUserTypeOnUserConsumer : IConsumer<ChangeUserTypeOnUser>
     {
         private readonly IAccountService _accountService;
+        private readonly IRequestClient<GetUserType> _client;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<ChangeUserTypeOnUserConsumer> _logger;
-
         private readonly IUserRepository _userRepository;
-        // private readonly IUserTypeRepository _userTypeRepository;
 
         public ChangeUserTypeOnUserConsumer(
             IAccountService accountService,
             IIdentityServerService identityServer,
             IUserRepository userRepository,
-            // IUserTypeRepository userTypeRepository,
-            ILogger<ChangeUserTypeOnUserConsumer> logger)
+            ILogger<ChangeUserTypeOnUserConsumer> logger, 
+            IRequestClient<GetUserType> client)
         {
             _accountService = accountService;
             _identityServer = identityServer;
             _userRepository = userRepository;
-            // _userTypeRepository = userTypeRepository;
             _logger = logger;
+            _client = client;
         }
 
         public async Task Consume(ConsumeContext<ChangeUserTypeOnUser> context)
@@ -65,12 +66,12 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 return;
             }
 
-            // var userType = await _userTypeRepository.FindById(context.Message.AccountId, context.Message.UserTypeId);
-            // if (userType is null)
-            // {
-            //     _logger.LogError("UserType not found for id {UserTypeId}", context.Message.UserTypeId);
-            //     return;
-            // }
+            var userType = await RequestUserType(context.Message.AccountId, context.Message.UserTypeId);
+            if (userType is null)
+            {
+                _logger.LogError("UserType not found for id {UserTypeId}", context.Message.UserTypeId);
+                return;
+            }
 
             var updated = await _identityServer
                 .UserProvider(user.Provider)
@@ -96,6 +97,25 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 context.Message.UserTypeId,
                 ChangedAt = DateTime.UtcNow
             });
+        }
+        
+        private async Task<UserTypeResponse> RequestUserType(string accountId, string userTypeId)
+        {
+            var (userTypeResponse, errorResoponse) = await _client.GetResponse<UserTypeResponse, ErrorResponse>(new
+            {
+                AccountId = accountId,
+                Id = userTypeId,
+                ShowDeleted = false
+            });
+
+            if (userTypeResponse.IsCompletedSuccessfully)
+            {
+                var userType = await userTypeResponse;
+                return userType.Message;
+            }
+
+            await errorResoponse;
+            return null;
         }
     }
 }

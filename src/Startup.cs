@@ -1,5 +1,6 @@
 ﻿using AlbedoTeam.Accounts.Contracts.Requests;
 using AlbedoTeam.Identity.Contracts.Events;
+using AlbedoTeam.Identity.Contracts.Requests;
 using AlbedoTeam.Sdk.DataLayerAccess;
 using AlbedoTeam.Sdk.JobWorker.Configuration.Abstractions;
 using AlbedoTeam.Sdk.MessageConsumer;
@@ -72,7 +73,9 @@ namespace Identity.Business.Users
                         .Map<GroupRemovedFromUser>();
                 },
                 clients => clients
-                    .Add<GetAccount>());
+                    .Add<GetAccount>()
+                    .Add<GetGroup>()
+                    .Add<GetUserType>());
         }
     }
 }
