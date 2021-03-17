@@ -157,16 +157,15 @@ namespace Identity.Business.Users.Services.IdentityServers.Providers.Okta
                 Token = _identityServerOptions.ApiKey
             });
 
-            var user = await client.Users.PartialUpdateUserAsync(new User
+            var user = await client.Users.GetUserAsync(userProviderId);
+            user.Credentials = new UserCredentials
             {
-                Credentials = new UserCredentials
+                Password = new PasswordCredential
                 {
-                    Password = new PasswordCredential
-                    {
-                        Value = newPassword
-                    }
+                    Value = newPassword
                 }
-            }, userProviderId);
+            };
+            user = await client.Users.PartialUpdateUserAsync(user, userProviderId);
 
             if (user is { }) return true;
 
@@ -199,8 +198,7 @@ namespace Identity.Business.Users.Services.IdentityServers.Providers.Okta
 
         public async Task<bool> Update(string userProviderId,
             string firstName,
-            string lastName,
-            string login)
+            string lastName)
         {
             var client = new OktaClient(new OktaClientConfiguration
             {
@@ -213,8 +211,7 @@ namespace Identity.Business.Users.Services.IdentityServers.Providers.Okta
                 Profile = new UserProfile
                 {
                     FirstName = firstName,
-                    LastName = lastName,
-                    Login = login
+                    LastName = lastName
                 }
             }, userProviderId);
 

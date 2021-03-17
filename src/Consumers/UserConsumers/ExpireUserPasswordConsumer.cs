@@ -54,7 +54,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             var temporaryPw = await _identityServer
                 .UserProvider(user.Provider)
-                .ExpirePasswordAndSetTemporaryOne(context.Message.Id);
+                .ExpirePasswordAndSetTemporaryOne(user.ProviderId);
 
             if (string.IsNullOrWhiteSpace(temporaryPw))
             {

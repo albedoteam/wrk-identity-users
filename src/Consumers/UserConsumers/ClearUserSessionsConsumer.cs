@@ -54,7 +54,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await _identityServer
                 .UserProvider(user.Provider)
-                .ClearSessions(context.Message.Id);
+                .ClearSessions(user.ProviderId);
 
             await context.Publish<UserSessionsCleared>(new
             {

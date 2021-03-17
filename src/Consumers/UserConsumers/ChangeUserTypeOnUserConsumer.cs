@@ -75,7 +75,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             var updated = await _identityServer
                 .UserProvider(user.Provider)
-                .ChangeUserType(context.Message.UserId, context.Message.UserTypeId);
+                .ChangeUserType(user.ProviderId, userType.ProviderId);
 
             if (!updated)
             {

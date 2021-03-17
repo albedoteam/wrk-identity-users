@@ -31,8 +31,10 @@ namespace Identity.Business.Users
 
         public async Task TickAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("JobConsumer is running: {Bus}", _busRunner.Who);
-            await Task.Delay(3000, cancellationToken);
+            // _logger.LogInformation("JobConsumer is running: {Bus}", _busRunner.Who);
+
+            await Task.CompletedTask;
+            await Task.Delay(5000, cancellationToken);
         }
     }
 }

@@ -83,7 +83,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await _identityServer
                 .UserProvider(user.Provider)
-                .AddGroup(context.Message.UserId, context.Message.GroupId);
+                .AddGroup(user.ProviderId, group.ProviderId);
 
             user.Groups.Add(context.Message.GroupId);
 
