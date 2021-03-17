@@ -54,7 +54,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             var updated = await _identityServer
                 .UserProvider(user.Provider)
-                .ChangePassword(context.Message.Id, context.Message.OldPassword, context.Message.NewPassword);
+                .ChangePassword(user.ProviderId, context.Message.OldPassword, context.Message.NewPassword);
 
             if (!updated)
             {

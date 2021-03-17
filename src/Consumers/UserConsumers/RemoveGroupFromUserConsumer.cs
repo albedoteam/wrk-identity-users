@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
+using AlbedoTeam.Identity.Contracts.Requests;
+using AlbedoTeam.Identity.Contracts.Responses;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
@@ -17,18 +19,21 @@ namespace Identity.Business.Users.Consumers.UserConsumers
         private readonly IAccountService _accountService;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<RemoveGroupFromUserConsumer> _logger;
+        private readonly IRequestClient<GetGroup> _client;
         private readonly IUserRepository _userRepository;
 
         public RemoveGroupFromUserConsumer(
             IAccountService accountService,
             IIdentityServerService identityServer,
             IUserRepository userRepository,
-            ILogger<RemoveGroupFromUserConsumer> logger)
+            ILogger<RemoveGroupFromUserConsumer> logger,
+            IRequestClient<GetGroup> client)
         {
             _accountService = accountService;
             _identityServer = identityServer;
             _userRepository = userRepository;
             _logger = logger;
+            _client = client;
         }
 
         public async Task Consume(ConsumeContext<RemoveGroupFromUser> context)
@@ -60,6 +65,13 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 _logger.LogError("User not found for id {UserId}", context.Message.UserId);
                 return;
             }
+            
+            var group = await RequestGroup(context.Message.AccountId, context.Message.GroupId);
+            if (group is null)
+            {
+                _logger.LogError("Group not found for id {GroupId}", context.Message.GroupId);
+                return;
+            }
 
             var contains = user.Groups.Contains(context.Message.GroupId);
             if (!contains)
@@ -71,7 +83,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await _identityServer
                 .UserProvider(user.Provider)
-                .RemoveGroup(context.Message.UserId, context.Message.GroupId);
+                .RemoveGroup(context.Message.UserId, group.ProviderId);
 
             user.Groups.Remove(context.Message.GroupId);
 
@@ -88,6 +100,25 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 context.Message.GroupId,
                 RemovedAt = DateTime.UtcNow
             });
+        }
+        
+        private async Task<GroupResponse> RequestGroup(string accountId, string groupId)
+        {
+            var (groupResponse, errorResoponse) = await _client.GetResponse<GroupResponse, ErrorResponse>(new
+            {
+                AccountId = accountId,
+                Id = groupId,
+                ShowDeleted = false
+            });
+
+            if (groupResponse.IsCompletedSuccessfully)
+            {
+                var group = await groupResponse;
+                return group.Message;
+            }
+
+            await errorResoponse;
+            return null;
         }
     }
 }

@@ -79,13 +79,9 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 return;
             }
 
-            // adjust login 
-            var accountName = account.Name.Replace(" ", "-").ToLower();
-            var loginOnProvider = $"{context.Message.Username}@{accountName}";
-
             var updated = await _identityServer
                 .UserProvider(user.Provider)
-                .Update(user.ProviderId, context.Message.FirstName, context.Message.LastName, loginOnProvider);
+                .Update(user.ProviderId, context.Message.FirstName, context.Message.LastName);
 
             if (!updated)
             {

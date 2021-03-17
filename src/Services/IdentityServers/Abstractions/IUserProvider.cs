@@ -16,8 +16,7 @@ namespace Identity.Business.Users.Services.IdentityServers.Abstractions
         Task<bool> Update(
             string userProviderId,
             string firstName,
-            string lastName,
-            string login);
+            string lastName);
 
         Task Delete(string userProviderId);
 

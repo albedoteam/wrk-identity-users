@@ -47,7 +47,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 await context.RespondAsync<ErrorResponse>(new
                 {
                     ErrorType = ErrorType.NotFound,
-                    ErrorMessage = "Groups not found"
+                    ErrorMessage = "Users not found"
                 });
             else
                 await context.RespondAsync<ListUsersResponse>(new
