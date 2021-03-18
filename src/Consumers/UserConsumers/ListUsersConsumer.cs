@@ -72,7 +72,8 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 _repository.Helpers.Like(a => a.FirstName, filterBy),
                 _repository.Helpers.Like(a => a.LastName, filterBy),
                 _repository.Helpers.Like(a => a.Username, filterBy),
-                _repository.Helpers.Like(a => a.Email, filterBy)
+                _repository.Helpers.Like(a => a.Email, filterBy),
+                _repository.Helpers.Like(a => a.UsernameAtProvider, filterBy)
             );
 
             return optionalFilters;

@@ -98,7 +98,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             var accountName = account.Name.Replace(" ", "_").Replace(".", "_").ToLower();
             var firstNameOnLogin = model.FirstName.Replace(" ", "_").Replace(".", "_").ToLower();
             var lastNameOnLogin = model.LastName.Replace(" ", "_").Replace(".", "_").ToLower();
-            var loginOnProvider = $"{firstNameOnLogin}_{lastNameOnLogin}@{accountName}";
+            model.UsernameAtProvider = $"{firstNameOnLogin}_{lastNameOnLogin}@{accountName}";
 
             var userProviderId = await _identityServer
                 .UserProvider(context.Message.Provider)
@@ -107,7 +107,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                     userType.ProviderId,
                     context.Message.FirstName,
                     context.Message.LastName,
-                    loginOnProvider,
+                    model.UsernameAtProvider,
                     groupsOnProvider);
 
             if (string.IsNullOrWhiteSpace(userProviderId))
