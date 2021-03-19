@@ -83,7 +83,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await _identityServer
                 .UserProvider(user.Provider)
-                .RemoveGroup(context.Message.UserId, group.ProviderId);
+                .RemoveGroup(user.ProviderId, group.ProviderId);
 
             user.Groups.Remove(context.Message.GroupId);
 
