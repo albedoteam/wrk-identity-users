@@ -69,12 +69,12 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 context.Message.AccountId,
                 g => g.Username.Equals(context.Message.Username))).Any();
 
-            if (exists)
+            if (!exists)
             {
                 await context.RespondAsync<ErrorResponse>(new
                 {
                     ErrorType = ErrorType.AlreadyExists,
-                    ErrorMessage = $"User with usernname {context.Message.Username} already exists"
+                    ErrorMessage = $"User with usernname {context.Message.Username} do not exists"
                 });
                 return;
             }
