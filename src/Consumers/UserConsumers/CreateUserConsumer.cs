@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AlbedoTeam.Communications.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Common;
 using AlbedoTeam.Identity.Contracts.Requests;
 using AlbedoTeam.Identity.Contracts.Responses;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Mappers.Abstractions;
+using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
 using Identity.Business.Users.Services.Communications;
 using Identity.Business.Users.Services.IdentityServers.Abstractions;
@@ -16,21 +19,23 @@ namespace Identity.Business.Users.Consumers.UserConsumers
     public class CreateUserConsumer : IConsumer<CreateUser>
     {
         private readonly IAccountService _accountService;
+        private readonly ICommunicationService _communicationService;
+        private readonly IRequestClient<GetGroup> _groupClient;
         private readonly IIdentityServerService _identityServer;
         private readonly IUserMapper _mapper;
+        private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
         private readonly IUserRepository _repository;
         private readonly IRequestClient<GetUserType> _userTypeClient;
-        private readonly IRequestClient<GetGroup> _groupClient;
-        private readonly ICommunicationService _communicationService;
 
         public CreateUserConsumer(
             IAccountService accountService,
             IIdentityServerService identityServer,
             IUserMapper mapper,
             IUserRepository repository,
-            IRequestClient<GetUserType> userTypeClient, 
+            IRequestClient<GetUserType> userTypeClient,
             IRequestClient<GetGroup> groupClient,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            IPasswordRecoveryRepository passwordRecoveryRepository)
         {
             _accountService = accountService;
             _identityServer = identityServer;
@@ -39,6 +44,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             _userTypeClient = userTypeClient;
             _groupClient = groupClient;
             _communicationService = communicationService;
+            _passwordRecoveryRepository = passwordRecoveryRepository;
         }
 
         public async Task Consume(ConsumeContext<CreateUser> context)
@@ -80,9 +86,10 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                     });
                     return;
                 }
+
                 groupsOnProvider.Add(group.ProviderId);
             }
-            
+
             var exists = (await _repository.FilterBy(context.Message.AccountId,
                 a => a.Username.Equals(context.Message.Username) && !a.IsDeleted)).Any();
 
@@ -127,20 +134,29 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             model.ProviderId = userProviderId;
 
             var user = await _repository.InsertOne(model);
-            
-            await _communicationService.SendUserCreatedEmail(context, user.FirstName, user.Email, user.Username);
-            
+
+            var pwdRecovery = await _passwordRecoveryRepository.InsertOne(new PasswordRecovery
+            {
+                AccountId = context.Message.AccountId,
+                UserId = user.Id.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddDays(3),
+                ValidationToken = new Random().Next(0, 999999).ToString("D6")
+            });
+
+            await SendEmail(context, user, pwdRecovery.ValidationToken);
+
             await context.RespondAsync(_mapper.MapModelToResponse(user));
         }
-        
+
         private async Task<UserTypeResponse> RequestUserType(string accountId, string userTypeId)
         {
-            var (userTypeResponse, errorResoponse) = await _userTypeClient.GetResponse<UserTypeResponse, ErrorResponse>(new
-            {
-                AccountId = accountId,
-                Id = userTypeId,
-                ShowDeleted = false
-            });
+            var (userTypeResponse, errorResoponse) = await _userTypeClient.GetResponse<UserTypeResponse, ErrorResponse>(
+                new
+                {
+                    AccountId = accountId,
+                    Id = userTypeId,
+                    ShowDeleted = false
+                });
 
             if (userTypeResponse.IsCompletedSuccessfully)
             {
@@ -151,7 +167,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             await errorResoponse;
             return null;
         }
-        
+
         private async Task<GroupResponse> RequestGroup(string accountId, string groupId)
         {
             var (groupResponse, errorResoponse) = await _groupClient.GetResponse<GroupResponse, ErrorResponse>(new
@@ -169,6 +185,53 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await errorResoponse;
             return null;
+        }
+
+        private async Task SendEmail(ConsumeContext<CreateUser> context, User user, string token)
+        {
+            var rule = await _communicationService.GetCommunicationRule(
+                context.Message.AccountId,
+                CommunicationEvent.OnUserCreated);
+
+            var redirectUrl = _communicationService.FormatRedirectUrl(rule, context.Message.AccountId);
+
+            await context.Send<SendMessage>(new
+            {
+                context.Message.AccountId,
+                rule.TemplateId,
+                Subject = "Bem vindo!",
+                Destinations = new[]
+                {
+                    new
+                    {
+                        Name = user.FirstName,
+                        Address = user.Email
+                    }
+                },
+                Parameters = new[]
+                {
+                    new
+                    {
+                        Key = "username",
+                        Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "login",
+                        Value = user.Username
+                    },
+                    new
+                    {
+                        Key = "token",
+                        Value = token
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
+            });
         }
     }
 }

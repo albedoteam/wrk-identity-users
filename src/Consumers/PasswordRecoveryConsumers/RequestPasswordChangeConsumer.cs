@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AlbedoTeam.Communications.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
 using Identity.Business.Users.Db.Abstractions;
@@ -14,10 +15,10 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
     public class RequestPasswordChangeConsumer : IConsumer<RequestPasswordChange>
     {
         private readonly IAccountService _accountService;
-        private readonly ILogger<RequestPasswordChangeConsumer> _logger;
-        private readonly IUserRepository _repository;
         private readonly ICommunicationService _communicationService;
+        private readonly ILogger<RequestPasswordChangeConsumer> _logger;
         private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
+        private readonly IUserRepository _repository;
 
         public RequestPasswordChangeConsumer(
             IAccountService accountService,
@@ -64,11 +65,7 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
                 ValidationToken = new Random().Next(0, 999999).ToString("D6")
             });
 
-            await _communicationService.SendPasswordChangeRequestedEmail(
-                context, 
-                user.FirstName,
-                user.Email, 
-                pwdRecovery.ValidationToken);
+            await SendEmail(context, user, pwdRecovery.ValidationToken);
 
             await context.Publish<UserPasswordChangeRequested>(new
             {
@@ -76,6 +73,48 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
                 context.Message.Id,
                 Token = pwdRecovery.ValidationToken,
                 RequestedAt = DateTime.UtcNow
+            });
+        }
+
+        private async Task SendEmail(ConsumeContext<RequestPasswordChange> context, User user, string token)
+        {
+            var rule = await _communicationService.GetCommunicationRule(
+                context.Message.AccountId,
+                CommunicationEvent.OnPasswordChangeRequested);
+
+            var redirectUrl = _communicationService.FormatRedirectUrl(rule, context.Message.AccountId);
+
+            await context.Send<SendMessage>(new
+            {
+                context.Message.AccountId,
+                rule.TemplateId,
+                Subject = "Solicitação de redefinição de senha",
+                Destinations = new[]
+                {
+                    new
+                    {
+                        Name = user.FirstName,
+                        Address = user.Email
+                    }
+                },
+                Parameters = new[]
+                {
+                    new
+                    {
+                        Key = "username",
+                        Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "token",
+                        Value = token
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
     }

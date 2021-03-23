@@ -5,7 +5,7 @@ using Identity.Business.Users.Models;
 
 namespace Identity.Business.Users.Mappers
 {
-    public class PasswordRecoveryMapper: IPasswordRecoveryMapper
+    public class PasswordRecoveryMapper : IPasswordRecoveryMapper
     {
         private readonly IMapper _mapper;
 

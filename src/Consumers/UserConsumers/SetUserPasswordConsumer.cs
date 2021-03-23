@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AlbedoTeam.Communications.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
 using Identity.Business.Users.Db.Abstractions;
+using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
 using Identity.Business.Users.Services.Communications;
 using Identity.Business.Users.Services.IdentityServers.Abstractions;
@@ -14,10 +16,10 @@ namespace Identity.Business.Users.Consumers.UserConsumers
     public class SetUserPasswordConsumer : IConsumer<SetUserPassword>
     {
         private readonly IAccountService _accountService;
+        private readonly ICommunicationService _communicationService;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<SetUserPasswordConsumer> _logger;
         private readonly IUserRepository _repository;
-        private readonly ICommunicationService _communicationService;
 
         public SetUserPasswordConsumer(
             IAccountService accountService,
@@ -66,13 +68,50 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 return;
             }
 
-            await _communicationService.SendPasswordChangedEmail(context, user.FirstName, user.Email);
+            await SendEmail(context, user);
 
             await context.Publish<UserPasswordSetted>(new
             {
                 context.Message.AccountId,
                 context.Message.Id,
                 SettedAt = DateTime.UtcNow
+            });
+        }
+
+        private async Task SendEmail(ConsumeContext<SetUserPassword> context, User user)
+        {
+            var rule = await _communicationService.GetCommunicationRule(
+                context.Message.AccountId,
+                CommunicationEvent.OnPasswordChanged);
+
+            var redirectUrl = _communicationService.FormatRedirectUrl(rule, context.Message.AccountId);
+
+            await context.Send<SendMessage>(new
+            {
+                context.Message.AccountId,
+                rule.TemplateId,
+                Subject = "Redefinição de senha realizada",
+                Destinations = new[]
+                {
+                    new
+                    {
+                        Name = user.FirstName,
+                        Address = user.Email
+                    }
+                },
+                Parameters = new[]
+                {
+                    new
+                    {
+                        Key = "username",
+                        Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
     }

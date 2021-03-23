@@ -12,8 +12,8 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 {
     public class GetPasswordRecoveryConsumer : IConsumer<GetPasswordRecovery>
     {
-        private readonly IPasswordRecoveryRepository _repository;
         private readonly IPasswordRecoveryMapper _mapper;
+        private readonly IPasswordRecoveryRepository _repository;
 
         public GetPasswordRecoveryConsumer(
             IPasswordRecoveryRepository repository,

@@ -26,7 +26,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             IAccountService accountService,
             IIdentityServerService identityServer,
             IUserRepository userRepository,
-            ILogger<ChangeUserTypeOnUserConsumer> logger, 
+            ILogger<ChangeUserTypeOnUserConsumer> logger,
             IRequestClient<GetUserType> client)
         {
             _accountService = accountService;
@@ -98,7 +98,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 ChangedAt = DateTime.UtcNow
             });
         }
-        
+
         private async Task<UserTypeResponse> RequestUserType(string accountId, string userTypeId)
         {
             var (userTypeResponse, errorResoponse) = await _client.GetResponse<UserTypeResponse, ErrorResponse>(new

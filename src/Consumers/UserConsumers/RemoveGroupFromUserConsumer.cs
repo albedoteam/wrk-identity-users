@@ -17,9 +17,9 @@ namespace Identity.Business.Users.Consumers.UserConsumers
     public class RemoveGroupFromUserConsumer : IConsumer<RemoveGroupFromUser>
     {
         private readonly IAccountService _accountService;
+        private readonly IRequestClient<GetGroup> _client;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<RemoveGroupFromUserConsumer> _logger;
-        private readonly IRequestClient<GetGroup> _client;
         private readonly IUserRepository _userRepository;
 
         public RemoveGroupFromUserConsumer(
@@ -65,7 +65,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 _logger.LogError("User not found for id {UserId}", context.Message.UserId);
                 return;
             }
-            
+
             var group = await RequestGroup(context.Message.AccountId, context.Message.GroupId);
             if (group is null)
             {
@@ -101,7 +101,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 RemovedAt = DateTime.UtcNow
             });
         }
-        
+
         private async Task<GroupResponse> RequestGroup(string accountId, string groupId)
         {
             var (groupResponse, errorResoponse) = await _client.GetResponse<GroupResponse, ErrorResponse>(new

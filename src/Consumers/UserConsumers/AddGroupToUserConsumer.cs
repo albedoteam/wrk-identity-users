@@ -23,11 +23,11 @@ namespace Identity.Business.Users.Consumers.UserConsumers
         private readonly IUserRepository _userRepository;
 
         public AddGroupToUserConsumer(
-                IAccountService accountService,
-                IIdentityServerService identityServer,
-                IUserRepository userRepository,
-                ILogger<AddGroupToUserConsumer> logger, 
-                IRequestClient<GetGroup> client)
+            IAccountService accountService,
+            IIdentityServerService identityServer,
+            IUserRepository userRepository,
+            ILogger<AddGroupToUserConsumer> logger,
+            IRequestClient<GetGroup> client)
         {
             _accountService = accountService;
             _identityServer = identityServer;
@@ -101,7 +101,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 AddedAt = DateTime.UtcNow
             });
         }
-        
+
         private async Task<GroupResponse> RequestGroup(string accountId, string groupId)
         {
             var (groupResponse, errorResoponse) = await _client.GetResponse<GroupResponse, ErrorResponse>(new

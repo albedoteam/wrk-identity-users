@@ -13,11 +13,11 @@ namespace Identity.Business.Users.Services
         {
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<ICommunicationService, CommunicationService>();
-                
+
             // identity server service and factory
             services.AddScoped<IIdentityServerService, IdentityServerService>();
             services.AddScoped<IdentityProviderFactory>();
-            
+
             // providers
             services
                 .AddScoped<OktaUserProvider>()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AlbedoTeam.Communications.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
 using Identity.Business.Users.Db.Abstractions;
@@ -16,11 +17,10 @@ namespace Identity.Business.Users.Consumers.UserConsumers
     public class ActivateUserConsumer : IConsumer<ActivateUser>
     {
         private readonly IAccountService _accountService;
+        private readonly ICommunicationService _communicationService;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<ActivateUserConsumer> _logger;
         private readonly IUserRepository _repository;
-
-        private readonly ICommunicationService _communicationService;
 
         public ActivateUserConsumer(
             IIdentityServerService identityServer,
@@ -81,7 +81,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await _repository.UpdateById(context.Message.AccountId, context.Message.Id, update);
 
-            await _communicationService.SendUserActivatedEmail(context, user.FirstName, user.Email);
+            await SendEmail(context, user);
 
             await context.Publish<UserActivated>(new
             {
@@ -90,6 +90,43 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 ActivatedAt = DateTime.UtcNow,
                 context.Message.Reason,
                 ActivationToken = activationToken
+            });
+        }
+
+        private async Task SendEmail(ConsumeContext<ActivateUser> context, User user)
+        {
+            var rule = await _communicationService.GetCommunicationRule(
+                context.Message.AccountId,
+                CommunicationEvent.OnUserActivated);
+
+            var redirectUrl = _communicationService.FormatRedirectUrl(rule, context.Message.AccountId);
+
+            await context.Send<SendMessage>(new
+            {
+                context.Message.AccountId,
+                rule.TemplateId,
+                Subject = "Usuário Ativado",
+                Destinations = new[]
+                {
+                    new
+                    {
+                        Name = user.FirstName,
+                        Address = user.Email
+                    }
+                },
+                Parameters = new[]
+                {
+                    new
+                    {
+                        Key = "username",
+                        Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
     }

@@ -1,6 +1,5 @@
 ﻿using AlbedoTeam.Accounts.Contracts.Requests;
 using AlbedoTeam.Communications.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
 using AlbedoTeam.Identity.Contracts.Requests;
 using AlbedoTeam.Sdk.DataLayerAccess;
@@ -61,7 +60,7 @@ namespace Identity.Business.Users
                         .Add<ClearUserSessionsConsumer>()
                         .Add<ExpireUserPasswordConsumer>()
                         .Add<ChangeUserTypeOnUserConsumer>();
-                    
+
                     // pwd recovery
                     consumers
                         .Add<GetPasswordRecoveryConsumer>()
@@ -84,7 +83,7 @@ namespace Identity.Business.Users
                     // pwd recovery events
                     queues
                         .Map<UserPasswordChangeRequested>();
-                    
+
                     // communication commands
                     queues
                         .Map<SendMessage>();
@@ -94,7 +93,7 @@ namespace Identity.Business.Users
                     .Add<GetGroup>()
                     .Add<GetUserType>()
                     .Add<ListAuthServers>()
-                );
+            );
         }
     }
 }
