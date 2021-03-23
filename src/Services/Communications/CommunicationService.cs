@@ -33,8 +33,8 @@ namespace Identity.Business.Users.Services.Communications
         {
             var rule = await GetCommunicationRule(context.Message.AccountId, CommunicationEvent.OnUserActivated);
 
-            var dictionary = rule.DefaultContentParameters ??= new Dictionary<string, string>();
-            dictionary.Add("username", name);
+            var redirectUrl = "";
+            rule.DefaultContentParameters?.TryGetValue("redirectUrl", out redirectUrl);
 
             await context.Send<SendMessage>(new
             {
@@ -49,7 +49,18 @@ namespace Identity.Business.Users.Services.Communications
                         Address = email
                     }
                 },
-                Parameters = dictionary.ToImmutableArray()
+                Parameters = new[] {
+                    new
+                    {
+                        Key = "username",
+                        Value = name
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
 
@@ -57,8 +68,8 @@ namespace Identity.Business.Users.Services.Communications
         {
             var rule = await GetCommunicationRule(context.Message.AccountId, CommunicationEvent.OnUserDeactivated);
 
-            var dictionary = rule.DefaultContentParameters ??= new Dictionary<string, string>();
-            dictionary.Add("username", name);
+            var redirectUrl = "";
+            rule.DefaultContentParameters?.TryGetValue("redirectUrl", out redirectUrl);
 
             await context.Send<SendMessage>(new
             {
@@ -73,7 +84,18 @@ namespace Identity.Business.Users.Services.Communications
                         Address = email
                     }
                 },
-                Parameters = dictionary.ToImmutableArray()
+                Parameters = new[] {
+                    new
+                    {
+                        Key = "username",
+                        Value = name
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
 
@@ -82,9 +104,8 @@ namespace Identity.Business.Users.Services.Communications
         {
             var rule = await GetCommunicationRule(context.Message.AccountId, CommunicationEvent.OnUserCreated);
 
-            var dictionary = rule.DefaultContentParameters ??= new Dictionary<string, string>();
-            dictionary.Add("username", name);
-            dictionary.Add("login", login);
+            var redirectUrl = "";
+            rule.DefaultContentParameters?.TryGetValue("redirectUrl", out redirectUrl);
 
             await context.Send<SendMessage>(new
             {
@@ -99,7 +120,23 @@ namespace Identity.Business.Users.Services.Communications
                         Address = email
                     }
                 },
-                Parameters = dictionary.ToImmutableArray()
+                Parameters = new[] {
+                    new
+                    {
+                        Key = "username",
+                        Value = name
+                    },
+                    new
+                    {
+                        Key = "login",
+                        Value = login
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
 
@@ -109,8 +146,8 @@ namespace Identity.Business.Users.Services.Communications
             var rule = await GetCommunicationRule(context.Message.AccountId,
                 CommunicationEvent.OnPasswordChanged);
 
-            var dictionary = rule.DefaultContentParameters ??= new Dictionary<string, string>();
-            dictionary.Add("username", name);
+            var redirectUrl = "";
+            rule.DefaultContentParameters?.TryGetValue("redirectUrl", out redirectUrl);
 
             await context.Send<SendMessage>(new
             {
@@ -125,7 +162,18 @@ namespace Identity.Business.Users.Services.Communications
                         Address = email
                     }
                 },
-                Parameters = dictionary.ToImmutableArray()
+                Parameters = new[] {
+                    new
+                    {
+                        Key = "username",
+                        Value = name
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
 
@@ -135,8 +183,8 @@ namespace Identity.Business.Users.Services.Communications
             var rule = await GetCommunicationRule(context.Message.AccountId,
                 CommunicationEvent.OnPasswordChanged);
 
-            var dictionary = rule.DefaultContentParameters ??= new Dictionary<string, string>();
-            dictionary.Add("username", name);
+            var redirectUrl = "";
+            rule.DefaultContentParameters?.TryGetValue("redirectUrl", out redirectUrl);
 
             await context.Send<SendMessage>(new
             {
@@ -151,7 +199,18 @@ namespace Identity.Business.Users.Services.Communications
                         Address = email
                     }
                 },
-                Parameters = dictionary.ToImmutableArray()
+                Parameters = new[] {
+                    new
+                    {
+                        Key = "username",
+                        Value = name
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
 
@@ -161,9 +220,8 @@ namespace Identity.Business.Users.Services.Communications
             var rule = await GetCommunicationRule(context.Message.AccountId,
                 CommunicationEvent.OnPasswordChangeRequested);
 
-            var dictionary = rule.DefaultContentParameters ??= new Dictionary<string, string>();
-            dictionary.Add("username", name);
-            dictionary.Add("token", token);
+            var redirectUrl = "";
+            rule.DefaultContentParameters?.TryGetValue("redirectUrl", out redirectUrl);
 
             await context.Send<SendMessage>(new
             {
@@ -178,7 +236,23 @@ namespace Identity.Business.Users.Services.Communications
                         Address = email
                     }
                 },
-                Parameters = dictionary.ToImmutableArray()
+                Parameters = new[] {
+                    new
+                    {
+                        Key = "username",
+                        Value = name
+                    },
+                    new
+                    {
+                        Key = "token",
+                        Value = token
+                    },
+                    new
+                    {
+                        Key = "redirectUrl",
+                        Value = redirectUrl
+                    }
+                }
             });
         }
 
