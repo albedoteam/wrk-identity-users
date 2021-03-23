@@ -5,6 +5,7 @@ using AlbedoTeam.Identity.Contracts.Events;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
+using Identity.Business.Users.Services.Communications;
 using Identity.Business.Users.Services.IdentityServers.Abstractions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -19,16 +20,20 @@ namespace Identity.Business.Users.Consumers.UserConsumers
         private readonly ILogger<ActivateUserConsumer> _logger;
         private readonly IUserRepository _repository;
 
+        private readonly ICommunicationService _communicationService;
+
         public ActivateUserConsumer(
             IIdentityServerService identityServer,
             IUserRepository repository,
             IAccountService accountService,
-            ILogger<ActivateUserConsumer> logger)
+            ILogger<ActivateUserConsumer> logger,
+            ICommunicationService communicationService)
         {
             _identityServer = identityServer;
             _repository = repository;
             _accountService = accountService;
             _logger = logger;
+            _communicationService = communicationService;
         }
 
         public async Task Consume(ConsumeContext<ActivateUser> context)
@@ -75,6 +80,8 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 Builders<User>.Update.Set(a => a.UpdateReason, context.Message.Reason));
 
             await _repository.UpdateById(context.Message.AccountId, context.Message.Id, update);
+
+            await _communicationService.SendUserActivatedEmail(context, user.FirstName, user.Email);
 
             await context.Publish<UserActivated>(new
             {

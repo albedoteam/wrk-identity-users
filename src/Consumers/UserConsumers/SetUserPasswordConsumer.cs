@@ -4,6 +4,7 @@ using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Services.Accounts;
+using Identity.Business.Users.Services.Communications;
 using Identity.Business.Users.Services.IdentityServers.Abstractions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -16,17 +17,20 @@ namespace Identity.Business.Users.Consumers.UserConsumers
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<SetUserPasswordConsumer> _logger;
         private readonly IUserRepository _repository;
+        private readonly ICommunicationService _communicationService;
 
         public SetUserPasswordConsumer(
             IAccountService accountService,
             IIdentityServerService identityServer,
             IUserRepository repository,
-            ILogger<SetUserPasswordConsumer> logger)
+            ILogger<SetUserPasswordConsumer> logger,
+            ICommunicationService communicationService)
         {
             _accountService = accountService;
             _identityServer = identityServer;
             _repository = repository;
             _logger = logger;
+            _communicationService = communicationService;
         }
 
         public async Task Consume(ConsumeContext<SetUserPassword> context)
@@ -61,6 +65,8 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 _logger.LogError("Password change for user {UserId} failed", context.Message.Id);
                 return;
             }
+
+            await _communicationService.SendPasswordChangedEmail(context, user.FirstName, user.Email);
 
             await context.Publish<UserPasswordSetted>(new
             {

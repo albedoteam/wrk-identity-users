@@ -8,6 +8,7 @@ namespace Identity.Business.Users.Mappers
         public static IServiceCollection AddMappers(this IServiceCollection services)
         {
             services.AddTransient<IUserMapper, UserMapper>();
+            services.AddTransient<IPasswordRecoveryMapper, PasswordRecoveryMapper>();
 
             return services;
         }

@@ -1,9 +1,12 @@
 ﻿using AlbedoTeam.Accounts.Contracts.Requests;
+using AlbedoTeam.Communications.Contracts.Commands;
+using AlbedoTeam.Identity.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Events;
 using AlbedoTeam.Identity.Contracts.Requests;
 using AlbedoTeam.Sdk.DataLayerAccess;
 using AlbedoTeam.Sdk.JobWorker.Configuration.Abstractions;
 using AlbedoTeam.Sdk.MessageConsumer;
+using Identity.Business.Users.Consumers.PasswordRecoveryConsumers;
 using Identity.Business.Users.Consumers.UserConsumers;
 using Identity.Business.Users.Db;
 using Identity.Business.Users.Mappers;
@@ -35,6 +38,7 @@ namespace Identity.Business.Users
             services.AddRepositories();
             services.AddServices();
             services.AddTransient<IJobRunner, JobConsumer>();
+            services.AddMemoryCache();
 
             services.AddBroker(
                 configure => configure
@@ -57,6 +61,11 @@ namespace Identity.Business.Users
                         .Add<ClearUserSessionsConsumer>()
                         .Add<ExpireUserPasswordConsumer>()
                         .Add<ChangeUserTypeOnUserConsumer>();
+                    
+                    // pwd recovery
+                    consumers
+                        .Add<GetPasswordRecoveryConsumer>()
+                        .Add<RequestPasswordChangeConsumer>();
                 },
                 queues =>
                 {
@@ -71,11 +80,21 @@ namespace Identity.Business.Users
                         .Map<UserTypeChangedOnUser>()
                         .Map<GroupAddedToUser>()
                         .Map<GroupRemovedFromUser>();
+
+                    // pwd recovery events
+                    queues
+                        .Map<UserPasswordChangeRequested>();
+                    
+                    // communication commands
+                    queues
+                        .Map<SendMessage>();
                 },
                 clients => clients
                     .Add<GetAccount>()
                     .Add<GetGroup>()
-                    .Add<GetUserType>());
+                    .Add<GetUserType>()
+                    .Add<ListAuthServers>()
+                );
         }
     }
 }

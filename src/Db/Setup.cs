@@ -8,6 +8,7 @@ namespace Identity.Business.Users.Db
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IPasswordRecoveryRepository, PasswordRecoveryRepository>();
 
             return services;
         }

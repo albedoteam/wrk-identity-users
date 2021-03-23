@@ -7,6 +7,7 @@ using AlbedoTeam.Identity.Contracts.Responses;
 using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Mappers.Abstractions;
 using Identity.Business.Users.Services.Accounts;
+using Identity.Business.Users.Services.Communications;
 using Identity.Business.Users.Services.IdentityServers.Abstractions;
 using MassTransit;
 
@@ -20,6 +21,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
         private readonly IUserRepository _repository;
         private readonly IRequestClient<GetUserType> _userTypeClient;
         private readonly IRequestClient<GetGroup> _groupClient;
+        private readonly ICommunicationService _communicationService;
 
         public CreateUserConsumer(
             IAccountService accountService,
@@ -27,7 +29,8 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             IUserMapper mapper,
             IUserRepository repository,
             IRequestClient<GetUserType> userTypeClient, 
-            IRequestClient<GetGroup> groupClient)
+            IRequestClient<GetGroup> groupClient,
+            ICommunicationService communicationService)
         {
             _accountService = accountService;
             _identityServer = identityServer;
@@ -35,6 +38,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             _repository = repository;
             _userTypeClient = userTypeClient;
             _groupClient = groupClient;
+            _communicationService = communicationService;
         }
 
         public async Task Consume(ConsumeContext<CreateUser> context)
@@ -123,6 +127,9 @@ namespace Identity.Business.Users.Consumers.UserConsumers
             model.ProviderId = userProviderId;
 
             var user = await _repository.InsertOne(model);
+            
+            await _communicationService.SendUserCreatedEmail(context, user.FirstName, user.Email, user.Username);
+            
             await context.RespondAsync(_mapper.MapModelToResponse(user));
         }
         

@@ -6,36 +6,34 @@ using Identity.Business.Users.Db.Abstractions;
 using Identity.Business.Users.Models;
 using Identity.Business.Users.Services.Accounts;
 using Identity.Business.Users.Services.Communications;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 
-namespace Identity.Business.Users.Consumers.UserConsumers
+namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 {
-    public class DeactivateUserConsumer : IConsumer<DeactivateUser>
+    public class RequestPasswordChangeConsumer : IConsumer<RequestPasswordChange>
     {
         private readonly IAccountService _accountService;
-        private readonly IIdentityServerService _identityServer;
-        private readonly ILogger<DeactivateUserConsumer> _logger;
+        private readonly ILogger<RequestPasswordChangeConsumer> _logger;
         private readonly IUserRepository _repository;
         private readonly ICommunicationService _communicationService;
+        private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
 
-        public DeactivateUserConsumer(
+        public RequestPasswordChangeConsumer(
             IAccountService accountService,
-            IIdentityServerService identityServer,
+            ILogger<RequestPasswordChangeConsumer> logger,
             IUserRepository repository,
-            ILogger<DeactivateUserConsumer> logger,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            IPasswordRecoveryRepository passwordRecoveryRepository)
         {
             _accountService = accountService;
-            _identityServer = identityServer;
-            _repository = repository;
             _logger = logger;
+            _repository = repository;
             _communicationService = communicationService;
+            _passwordRecoveryRepository = passwordRecoveryRepository;
         }
 
-        public async Task Consume(ConsumeContext<DeactivateUser> context)
+        public async Task Consume(ConsumeContext<RequestPasswordChange> context)
         {
             if (!context.Message.Id.IsValidObjectId())
             {
@@ -58,30 +56,26 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 return;
             }
 
-            if (!user.Active)
+            var pwdRecovery = await _passwordRecoveryRepository.InsertOne(new PasswordRecovery
             {
-                _logger.LogWarning("User is already inactive for id {UserId}", context.Message.Id);
-                return;
-            }
+                AccountId = context.Message.AccountId,
+                UserId = context.Message.Id,
+                ExpiresAt = DateTime.UtcNow.AddHours(3),
+                ValidationToken = new Random().Next(0, 999999).ToString("D6")
+            });
 
-            await _identityServer
-                .UserProvider(user.Provider)
-                .Deactivate(user.ProviderId);
+            await _communicationService.SendPasswordChangeRequestedEmail(
+                context, 
+                user.FirstName,
+                user.Email, 
+                pwdRecovery.ValidationToken);
 
-            var update = Builders<User>.Update.Combine(
-                Builders<User>.Update.Set(a => a.Active, false),
-                Builders<User>.Update.Set(a => a.UpdateReason, context.Message.Reason));
-
-            await _repository.UpdateById(context.Message.AccountId, context.Message.Id, update);
-
-            await _communicationService.SendUserDeactivatedEmail(context, user.FirstName, user.Email);
-
-            await context.Publish<UserDeactivated>(new
+            await context.Publish<UserPasswordChangeRequested>(new
             {
                 context.Message.AccountId,
                 context.Message.Id,
-                context.Message.Reason,
-                DeactivatedAt = DateTime.UtcNow
+                Token = pwdRecovery.ValidationToken,
+                RequestedAt = DateTime.UtcNow
             });
         }
     }
