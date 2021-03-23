@@ -37,7 +37,7 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 
         public async Task Consume(ConsumeContext<CreatePasswordRecovery> context)
         {
-            if (!string.IsNullOrWhiteSpace(context.Message.UserEmail))
+            if (string.IsNullOrWhiteSpace(context.Message.UserEmail))
             {
                 _logger.LogError("The User email is required!");
                 return;
