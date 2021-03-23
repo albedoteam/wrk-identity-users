@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AlbedoTeam.Communications.Contracts.Commands;
 using AlbedoTeam.Identity.Contracts.Commands;
@@ -12,17 +13,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 {
-    public class RequestPasswordChangeConsumer : IConsumer<RequestPasswordChange>
+    public class CreatePasswordRecoveryConsumer : IConsumer<CreatePasswordRecovery>
     {
         private readonly IAccountService _accountService;
         private readonly ICommunicationService _communicationService;
-        private readonly ILogger<RequestPasswordChangeConsumer> _logger;
+        private readonly ILogger<CreatePasswordRecoveryConsumer> _logger;
         private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
         private readonly IUserRepository _repository;
 
-        public RequestPasswordChangeConsumer(
+        public CreatePasswordRecoveryConsumer(
             IAccountService accountService,
-            ILogger<RequestPasswordChangeConsumer> logger,
+            ILogger<CreatePasswordRecoveryConsumer> logger,
             IUserRepository repository,
             ICommunicationService communicationService,
             IPasswordRecoveryRepository passwordRecoveryRepository)
@@ -34,11 +35,11 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
             _passwordRecoveryRepository = passwordRecoveryRepository;
         }
 
-        public async Task Consume(ConsumeContext<RequestPasswordChange> context)
+        public async Task Consume(ConsumeContext<CreatePasswordRecovery> context)
         {
-            if (!context.Message.Id.IsValidObjectId())
+            if (!string.IsNullOrWhiteSpace(context.Message.UserEmail))
             {
-                _logger.LogError("The User ID does not have a valid ObjectId format {UserId}", context.Message.Id);
+                _logger.LogError("The User email is required!");
                 return;
             }
 
@@ -50,33 +51,37 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
                 return;
             }
 
-            var user = await _repository.FindById(context.Message.AccountId, context.Message.Id);
+            var user = (await _repository.FilterBy(
+                context.Message.AccountId,
+                u => u.Email == context.Message.UserEmail)).FirstOrDefault();
+
             if (user is null)
             {
-                _logger.LogError("User not found for id {UserId}", context.Message.Id);
+                _logger.LogWarning("User not found for email {UserEmail}", context.Message.UserEmail);
                 return;
             }
 
             var pwdRecovery = await _passwordRecoveryRepository.InsertOne(new PasswordRecovery
             {
                 AccountId = context.Message.AccountId,
-                UserId = context.Message.Id,
+                UserId = user.Id.ToString(),
                 ExpiresAt = DateTime.UtcNow.AddHours(3),
                 ValidationToken = new Random().Next(0, 999999).ToString("D6")
             });
 
             await SendEmail(context, user, pwdRecovery.ValidationToken);
 
-            await context.Publish<UserPasswordChangeRequested>(new
+            await context.Publish<PasswordRecoveryCreated>(new
             {
                 context.Message.AccountId,
-                context.Message.Id,
-                Token = pwdRecovery.ValidationToken,
-                RequestedAt = DateTime.UtcNow
+                UserId = user.Id.ToString(),
+                pwdRecovery.ValidationToken,
+                pwdRecovery.CreatedAt,
+                ExpiredAt = pwdRecovery.ExpiresAt
             });
         }
 
-        private async Task SendEmail(ConsumeContext<RequestPasswordChange> context, User user, string token)
+        private async Task SendEmail(ConsumeContext<CreatePasswordRecovery> context, User user, string token)
         {
             var rule = await _communicationService.GetCommunicationRule(
                 context.Message.AccountId,

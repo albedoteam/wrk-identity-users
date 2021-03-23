@@ -64,7 +64,7 @@ namespace Identity.Business.Users
                     // pwd recovery
                     consumers
                         .Add<GetPasswordRecoveryConsumer>()
-                        .Add<RequestPasswordChangeConsumer>();
+                        .Add<CreatePasswordRecoveryConsumer>();
                 },
                 queues =>
                 {
@@ -82,7 +82,7 @@ namespace Identity.Business.Users
 
                     // pwd recovery events
                     queues
-                        .Map<UserPasswordChangeRequested>();
+                        .Map<PasswordRecoveryCreated>();
 
                     // communication commands
                     queues

@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AlbedoTeam.Accounts.Contracts" Version="1.0.0-CI-20210226-160826" />
     <PackageReference Include="AlbedoTeam.Communications.Contracts" Version="1.0.0-CI-20210225-182250" />
-    <PackageReference Include="AlbedoTeam.Identity.Contracts" Version="1.0.0-CI-20210322-230617" />
+    <PackageReference Include="AlbedoTeam.Identity.Contracts" Version="1.0.0-CI-20210323-153245" />
     <PackageReference Include="AlbedoTeam.Sdk.DataLayerAccess" Version="1.0.0-CI-20210227-151747" />
     <PackageReference Include="AlbedoTeam.Sdk.JobWorker" Version="1.0.0-CI-20210310-143512" />
     <PackageReference Include="AlbedoTeam.Sdk.MessageConsumer" Version="1.0.0-CI-20210227-011616" />

@@ -34,7 +34,7 @@ namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 
             var passwordRecovery = (await _repository.FilterBy(
                 context.Message.AccountId,
-                p => p.ValidationToken == context.Message.Token)).FirstOrDefault();
+                p => p.ValidationToken == context.Message.ValidationToken)).FirstOrDefault();
 
             if (passwordRecovery is null || DateTime.UtcNow > passwordRecovery.ExpiresAt)
                 await context.RespondAsync<ErrorResponse>(new
