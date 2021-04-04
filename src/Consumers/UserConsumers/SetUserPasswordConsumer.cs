@@ -1,18 +1,18 @@
-﻿using System;
-using System.Threading.Tasks;
-using AlbedoTeam.Communications.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Events;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Models;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.Communications;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-using Microsoft.Extensions.Logging;
-
-namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
+    using System;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Communications.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Events;
+    using Db.Abstractions;
+    using MassTransit;
+    using Microsoft.Extensions.Logging;
+    using Models;
+    using Services.Accounts;
+    using Services.Communications;
+    using Services.IdentityServers.Abstractions;
+
     public class SetUserPasswordConsumer : IConsumer<SetUserPassword>
     {
         private readonly IAccountService _accountService;

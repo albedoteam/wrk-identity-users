@@ -1,8 +1,8 @@
-﻿using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Db.Abstractions
+﻿namespace Identity.Business.Users.Db.Abstractions
 {
+    using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
+    using Models;
+
     public interface IPasswordRecoveryRepository : IBaseRepositoryWithAccount<PasswordRecovery>
     {
     }

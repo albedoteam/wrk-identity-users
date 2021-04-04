@@ -1,10 +1,10 @@
-﻿using AlbedoTeam.Identity.Contracts.Responses;
-using AutoMapper;
-using Identity.Business.Users.Mappers.Abstractions;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Mappers
+﻿namespace Identity.Business.Users.Mappers
 {
+    using Abstractions;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using AutoMapper;
+    using Models;
+
     public class PasswordRecoveryMapper : IPasswordRecoveryMapper
     {
         private readonly IMapper _mapper;

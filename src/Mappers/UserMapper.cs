@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using AutoMapper;
-using Identity.Business.Users.Mappers.Abstractions;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Mappers
+﻿namespace Identity.Business.Users.Mappers
 {
+    using System.Collections.Generic;
+    using Abstractions;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using AutoMapper;
+    using Models;
+
     public class UserMapper : IUserMapper
     {
         private readonly IMapper _mapper;

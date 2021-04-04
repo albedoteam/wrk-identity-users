@@ -1,19 +1,19 @@
-﻿using System;
-using System.Threading.Tasks;
-using AlbedoTeam.Identity.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Events;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Models;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-
-namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
+    using System;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Identity.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Events;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using Db.Abstractions;
+    using MassTransit;
+    using Microsoft.Extensions.Logging;
+    using Models;
+    using MongoDB.Driver;
+    using Services.Accounts;
+    using Services.IdentityServers.Abstractions;
+
     public class AddGroupToUserConsumer : IConsumer<AddGroupToUser>
     {
         private readonly IAccountService _accountService;

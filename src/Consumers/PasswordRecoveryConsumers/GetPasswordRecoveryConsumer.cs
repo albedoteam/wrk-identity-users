@@ -1,15 +1,15 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using AlbedoTeam.Identity.Contracts.Common;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Mappers.Abstractions;
-using MassTransit;
-
-namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
+﻿namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Identity.Contracts.Common;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using Db.Abstractions;
+    using Mappers.Abstractions;
+    using MassTransit;
+
     public class GetPasswordRecoveryConsumer : IConsumer<GetPasswordRecovery>
     {
         private readonly IPasswordRecoveryMapper _mapper;

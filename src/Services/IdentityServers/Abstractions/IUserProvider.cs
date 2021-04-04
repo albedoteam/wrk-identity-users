@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Identity.Business.Users.Services.IdentityServers.Abstractions
+﻿namespace Identity.Business.Users.Services.IdentityServers.Abstractions
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
     public interface IUserProvider
     {
         Task<string> Create(

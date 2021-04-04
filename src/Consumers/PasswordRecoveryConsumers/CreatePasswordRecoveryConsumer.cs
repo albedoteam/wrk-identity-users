@@ -1,18 +1,18 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using AlbedoTeam.Communications.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Events;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Models;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.Communications;
-using MassTransit;
-using Microsoft.Extensions.Logging;
-
-namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
+﻿namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Communications.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Events;
+    using Db.Abstractions;
+    using MassTransit;
+    using Microsoft.Extensions.Logging;
+    using Models;
+    using Services.Accounts;
+    using Services.Communications;
+
     public class CreatePasswordRecoveryConsumer : IConsumer<CreatePasswordRecovery>
     {
         private readonly IAccountService _accountService;

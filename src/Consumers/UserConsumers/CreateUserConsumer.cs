@@ -1,21 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AlbedoTeam.Communications.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Common;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Mappers.Abstractions;
-using Identity.Business.Users.Models;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.Communications;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-
-namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Communications.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Common;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using Db.Abstractions;
+    using Mappers.Abstractions;
+    using MassTransit;
+    using Models;
+    using Services.Accounts;
+    using Services.Communications;
+    using Services.IdentityServers.Abstractions;
+
     public class CreateUserConsumer : IConsumer<CreateUser>
     {
         private readonly IAccountService _accountService;

@@ -1,9 +1,9 @@
-﻿using System;
-using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
-using AlbedoTeam.Sdk.DataLayerAccess.Attributes;
-
-namespace Identity.Business.Users.Models
+﻿namespace Identity.Business.Users.Models
 {
+    using System;
+    using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
+    using AlbedoTeam.Sdk.DataLayerAccess.Attributes;
+
     [BsonCollection("PasswordRecoveries")]
     public class PasswordRecovery : DocumentWithAccount
     {

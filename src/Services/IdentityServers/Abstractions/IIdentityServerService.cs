@@ -1,7 +1,7 @@
-﻿using AlbedoTeam.Identity.Contracts.Common;
-
-namespace Identity.Business.Users.Services.IdentityServers.Abstractions
+﻿namespace Identity.Business.Users.Services.IdentityServers.Abstractions
 {
+    using AlbedoTeam.Identity.Contracts.Common;
+
     public interface IIdentityServerService
     {
         IUserProvider UserProvider(Provider provider);

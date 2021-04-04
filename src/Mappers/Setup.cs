@@ -1,8 +1,8 @@
-﻿using Identity.Business.Users.Mappers.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Identity.Business.Users.Mappers
+﻿namespace Identity.Business.Users.Mappers
 {
+    using Abstractions;
+    using Microsoft.Extensions.DependencyInjection;
+
     public static class Setup
     {
         public static IServiceCollection AddMappers(this IServiceCollection services)

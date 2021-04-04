@@ -13,10 +13,10 @@
     <PackageReference Include="AlbedoTeam.Identity.Contracts" Version="1.0.0-CI-20210323-153245" />
     <PackageReference Include="AlbedoTeam.Sdk.DataLayerAccess" Version="1.0.0-CI-20210227-151747" />
     <PackageReference Include="AlbedoTeam.Sdk.JobWorker" Version="1.0.0-CI-20210310-143512" />
-    <PackageReference Include="AlbedoTeam.Sdk.MessageConsumer" Version="1.0.0-CI-20210227-011616" />
+    <PackageReference Include="AlbedoTeam.Sdk.MessageConsumer" Version="1.0.0-CI-20210404-151638" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="MassTransit.Analyzers" Version="7.0.4" />
-    <PackageReference Include="Okta.Sdk" Version="4.0.0" />
+    <PackageReference Include="Okta.Sdk" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json">

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
-using AlbedoTeam.Identity.Contracts.Common;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using MassTransit;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-
-namespace Identity.Business.Users.Services.Communications
+﻿namespace Identity.Business.Users.Services.Communications
 {
+    using System;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Identity.Contracts.Common;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using MassTransit;
+    using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Logging;
+
     public class CommunicationService : ICommunicationService
     {
         private readonly IMemoryCache _cache;

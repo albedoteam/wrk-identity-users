@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using AlbedoTeam.Accounts.Contracts.Requests;
-using AlbedoTeam.Accounts.Contracts.Responses;
-using MassTransit;
-
-namespace Identity.Business.Users.Services.Accounts
+﻿namespace Identity.Business.Users.Services.Accounts
 {
+    using System.Threading.Tasks;
+    using AlbedoTeam.Accounts.Contracts.Requests;
+    using AlbedoTeam.Accounts.Contracts.Responses;
+    using MassTransit;
+
     public class AccountService : IAccountService
     {
         private readonly IRequestClient<GetAccount> _client;

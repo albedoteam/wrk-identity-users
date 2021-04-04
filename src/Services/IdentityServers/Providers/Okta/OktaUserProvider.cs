@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-using Microsoft.Extensions.Logging;
-using Okta.Sdk;
-using Okta.Sdk.Configuration;
-
-namespace Identity.Business.Users.Services.IdentityServers.Providers.Okta
+﻿namespace Identity.Business.Users.Services.IdentityServers.Providers.Okta
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Abstractions;
+    using global::Okta.Sdk;
+    using global::Okta.Sdk.Configuration;
+    using MassTransit;
+    using Microsoft.Extensions.Logging;
+
     public class OktaUserProvider : IUserProvider
     {
         private readonly IdentityServerOptions _identityServerOptions;

@@ -1,8 +1,8 @@
-﻿using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Mappers.Abstractions
+﻿namespace Identity.Business.Users.Mappers.Abstractions
 {
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using Models;
+
     public interface IPasswordRecoveryMapper
     {
         // request to model
