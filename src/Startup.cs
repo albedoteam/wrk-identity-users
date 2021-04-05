@@ -80,7 +80,8 @@
                         .Add<ChangeUserPasswordConsumer>()
                         .Add<ClearUserSessionsConsumer>()
                         .Add<ExpireUserPasswordConsumer>()
-                        .Add<ChangeUserTypeOnUserConsumer>();
+                        .Add<ChangeUserTypeOnUserConsumer>()
+                        .Add<ResendFirstAccessEmailConsumer>();
 
                     // pwd recovery
                     consumers
@@ -99,7 +100,8 @@
                         .Map<UserSessionsCleared>()
                         .Map<UserTypeChangedOnUser>()
                         .Map<GroupAddedToUser>()
-                        .Map<GroupRemovedFromUser>();
+                        .Map<GroupRemovedFromUser>()
+                        .Map<FirstAccessEmailResent>();
 
                     // pwd recovery events
                     queues
