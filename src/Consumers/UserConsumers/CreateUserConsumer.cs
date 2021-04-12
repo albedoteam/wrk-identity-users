@@ -132,6 +132,7 @@
             }
 
             model.ProviderId = userProviderId;
+            model.Active = true;
 
             var user = await _repository.InsertOne(model);
 
