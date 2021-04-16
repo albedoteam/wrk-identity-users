@@ -1,16 +1,20 @@
 ﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using AlbedoTeam.Identity.Contracts.Common;
     using AlbedoTeam.Identity.Contracts.Requests;
     using AlbedoTeam.Identity.Contracts.Responses;
+    using AlbedoTeam.Sdk.FilterLanguage;
+    using AlbedoTeam.Sdk.FilterLanguage.Languages.MongoDbLanguage;
     using Db.Abstractions;
     using Mappers.Abstractions;
     using MassTransit;
     using Models;
     using MongoDB.Bson;
+    using MongoDB.Bson.Serialization;
     using MongoDB.Driver;
 
     public class ListUsersConsumer : IConsumer<ListUsers>
@@ -31,8 +35,7 @@
 
             var filterBy = CreateFilters(
                 context.Message.ShowDeleted,
-                null,
-                AddFilterBy(context.Message.FilterBy));
+                context.Message.FilterBy);
 
             var orderBy = _repository.Helpers.CreateSorting(
                 context.Message.OrderBy,
@@ -65,61 +68,26 @@
                 });
         }
 
-        private FilterDefinition<User> AddFilterBy(string filterBy)
-        {
-            if (string.IsNullOrWhiteSpace(filterBy))
-                return null;
-
-            var optionalFilters = Builders<User>.Filter.Or(
-                _repository.Helpers.Like(a => a.FirstName, filterBy),
-                _repository.Helpers.Like(a => a.LastName, filterBy),
-                _repository.Helpers.Like(a => a.Username, filterBy),
-                _repository.Helpers.Like(a => a.Email, filterBy),
-                _repository.Helpers.Like(a => a.UsernameAtProvider, filterBy));
-
-            return ApplyMetadataFilter(optionalFilters, filterBy);
-        }
-
-        private static FilterDefinition<User> ApplyMetadataFilter(
-            FilterDefinition<User> optionalFilters,
-            string filterBy)
-        {
-            const string metadataSubDocument = "CustomProfileFields";
-
-            var shouldFilterMetadata = filterBy.Contains(":", StringComparison.InvariantCultureIgnoreCase);
-
-            if (!shouldFilterMetadata)
-                return optionalFilters;
-
-            var metadataArray = filterBy.Split(":");
-            if (metadataArray.Length != 3 || !metadataArray[0].Equals("metadata"))
-                return optionalFilters;
-
-            var metadataField = metadataArray[1];
-            var metadataValue = metadataArray[2];
-
-            return Builders<User>.Filter.Or(
-                optionalFilters,
-                Builders<User>.Filter.Regex($"{metadataSubDocument}.{metadataField}",
-                    new BsonRegularExpression(metadataValue, "i")));
-        }
-
         private static FilterDefinition<User> CreateFilters(
-            bool showDeleted = false,
-            FilterDefinition<User> requiredFields = null,
-            FilterDefinition<User> filteredByFilters = null)
+            bool showDeleted,
+            string filterBy,
+            FilterDefinition<User> requiredFields = null
+        )
         {
+            var filteredByFilters = string.IsNullOrWhiteSpace(filterBy)
+                ? null
+                : FilterLanguage.ParseToFilterDefinition<User>(filterBy);
+
             var mainFilters = Builders<User>.Filter.And(Builders<User>.Filter.Empty);
             if (!showDeleted)
                 mainFilters &= Builders<User>.Filter.Eq(a => a.IsDeleted, false);
-            if (requiredFields is
-            {
-            })
+
+            if (requiredFields is { })
                 mainFilters &= requiredFields;
-            if (filteredByFilters is
-            {
-            })
+
+            if (filteredByFilters is { })
                 mainFilters &= filteredByFilters;
+            
             return mainFilters;
         }
     }
