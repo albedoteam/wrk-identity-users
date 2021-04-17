@@ -4,7 +4,7 @@
     using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
     using AlbedoTeam.Sdk.DataLayerAccess.Attributes;
 
-    [BsonCollection("PasswordRecoveries")]
+    [Collection("PasswordRecoveries")]
     public class PasswordRecovery : DocumentWithAccount
     {
         public string UserId { get; set; }
