@@ -84,7 +84,7 @@
                     ShowDeleted = false,
                     Page = 1,
                     PageSize = 1,
-                    FilterBy = accountId,
+                    FilterBy = $"(accountId eq '{accountId}')",
                     OrderBy = "accountId",
                     Sorting = Sorting.Asc
                 });
