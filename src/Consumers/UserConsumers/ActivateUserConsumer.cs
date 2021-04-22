@@ -21,19 +21,21 @@
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<ActivateUserConsumer> _logger;
         private readonly IUserRepository _repository;
+        private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
 
         public ActivateUserConsumer(
             IIdentityServerService identityServer,
             IUserRepository repository,
             IAccountService accountService,
             ILogger<ActivateUserConsumer> logger,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService, IPasswordRecoveryRepository passwordRecoveryRepository)
         {
             _identityServer = identityServer;
             _repository = repository;
             _accountService = accountService;
             _logger = logger;
             _communicationService = communicationService;
+            _passwordRecoveryRepository = passwordRecoveryRepository;
         }
 
         public async Task Consume(ConsumeContext<ActivateUser> context)
@@ -81,7 +83,15 @@
 
             await _repository.UpdateById(context.Message.AccountId, context.Message.Id, update);
 
-            await SendEmail(context, user);
+            var pwdRecovery = await _passwordRecoveryRepository.InsertOne(new PasswordRecovery
+            {
+                AccountId = context.Message.AccountId,
+                UserId = user.Id.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddDays(3),
+                ValidationToken = new Random().Next(0, 999999).ToString("D6")
+            });
+            
+            await SendEmail(context, user, pwdRecovery.ValidationToken);
 
             await context.Publish<UserActivated>(new
             {
@@ -93,7 +103,7 @@
             });
         }
 
-        private async Task SendEmail(ConsumeContext<ActivateUser> context, User user)
+        private async Task SendEmail(ConsumeContext<ActivateUser> context, User user, string token)
         {
             var rule = await _communicationService.GetCommunicationRule(
                 context.Message.AccountId,
@@ -120,6 +130,16 @@
                     {
                         Key = "username",
                         Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "login",
+                        Value = user.Username
+                    },
+                    new
+                    {
+                        Key = "token",
+                        Value = token
                     },
                     new
                     {

@@ -4,6 +4,8 @@
     using AlbedoTeam.Identity.Contracts.Common;
     using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
     using AlbedoTeam.Sdk.DataLayerAccess.Attributes;
+    using MongoDB.Bson;
+    using MongoDB.Bson.Serialization.Attributes;
 
     [Collection("Users")]
     public class User : DocumentWithAccount
@@ -16,6 +18,8 @@
         public bool Active { get; set; }
         public Dictionary<string, string> CustomProfileFields { get; set; }
         public List<string> Groups { get; set; }
+        
+        [BsonRepresentation(BsonType.String)]
         public Provider Provider { get; set; }
         public string ProviderId { get; set; }
         public string UsernameAtProvider { get; set; }
