@@ -65,6 +65,16 @@
                 return;
             }
 
+            if (!user.Active)
+            {
+                await context.RespondAsync<ErrorResponse>(new
+                {
+                    ErrorType = ErrorType.InvalidOperation,
+                    ErrorMessage = $"User id {context.Message.Id} is not active to be updated"
+                });
+                return;
+            }
+
             var exists = (await _repository.FilterBy(
                 context.Message.AccountId,
                 g => g.Username.Equals(context.Message.Username))).Any();
