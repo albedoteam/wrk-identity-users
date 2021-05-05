@@ -27,24 +27,17 @@
             var queryRequest = QueryUtils.GetQueryParams<User>(_mapper.RequestToQuery(context.Message));
             var queryResponse = await _repository.QueryByPage(context.Message.AccountId, queryRequest);
 
-            if (!queryResponse.Records.Any())
-                await context.RespondAsync<ErrorResponse>(new
-                {
-                    ErrorType = ErrorType.NotFound,
-                    ErrorMessage = "Users not found"
-                });
-            else
-                await context.RespondAsync<ListUsersResponse>(new
-                {
-                    queryResponse.Page,
-                    queryResponse.PageSize,
-                    queryResponse.RecordsInPage,
-                    queryResponse.TotalPages,
-                    Items = _mapper.MapModelToResponse(queryResponse.Records.ToList()),
-                    context.Message.FilterBy,
-                    context.Message.OrderBy,
-                    context.Message.Sorting
-                });
+            await context.RespondAsync<ListUsersResponse>(new
+            {
+                queryResponse.Page,
+                queryResponse.PageSize,
+                queryResponse.RecordsInPage,
+                queryResponse.TotalPages,
+                Items = _mapper.MapModelToResponse(queryResponse.Records.ToList()),
+                context.Message.FilterBy,
+                context.Message.OrderBy,
+                context.Message.Sorting
+            });
         }
     }
 }
