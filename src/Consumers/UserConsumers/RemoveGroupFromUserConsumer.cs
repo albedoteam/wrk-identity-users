@@ -20,7 +20,6 @@
         private readonly IRequestClient<GetGroup> _client;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<RemoveGroupFromUserConsumer> _logger;
-        private readonly IRequestClient<GetGroup> _client;
         private readonly IUserRepository _userRepository;
 
         public RemoveGroupFromUserConsumer(
@@ -67,13 +66,6 @@
                 return;
             }
             
-            var group = await RequestGroup(context.Message.AccountId, context.Message.GroupId);
-            if (group is null)
-            {
-                _logger.LogError("Group not found for id {GroupId}", context.Message.GroupId);
-                return;
-            }
-
             var group = await RequestGroup(context.Message.AccountId, context.Message.GroupId);
             if (group is null)
             {
