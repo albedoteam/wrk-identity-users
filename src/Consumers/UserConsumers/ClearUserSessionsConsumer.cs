@@ -1,15 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
-using AlbedoTeam.Identity.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Events;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-using Microsoft.Extensions.Logging;
-
-namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
+    using System;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Identity.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Events;
+    using Db.Abstractions;
+    using MassTransit;
+    using Microsoft.Extensions.Logging;
+    using Services.Accounts;
+    using Services.IdentityServers.Abstractions;
+
     public class ClearUserSessionsConsumer : IConsumer<ClearUserSessions>
     {
         private readonly IAccountService _accountService;

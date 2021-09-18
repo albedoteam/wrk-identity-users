@@ -3,7 +3,7 @@
     using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
     using Models;
 
-    public interface IUserRepository : IBaseRepositoryWithAccount<User>
+    public interface IPasswordRecoveryRepository : IBaseRepositoryWithAccount<PasswordRecovery>
     {
     }
 }

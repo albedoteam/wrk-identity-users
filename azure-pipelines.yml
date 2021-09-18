@@ -1,0 +1,48 @@
+trigger:
+- rc
+- master
+
+pool:
+  vmImage: ubuntu-20.04
+
+steps:
+- task: NuGetToolInstaller@1
+  displayName: install nuget tools
+
+- task: NuGetCommand@2
+  displayName: restore
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+    feedsToUse: 'select'
+    vstsFeed: '460eafeb-a48f-4d11-80be-d714fdbb532b'
+
+- task: DotNetCoreCLI@2
+  displayName: build
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: '**/[Ss]rc/*.csproj'
+    arguments: '--configuration Release -o $(Build.ArtifactStagingDirectory)'
+
+# - task: DotNetCoreCLI@2
+#   displayName: test
+#   inputs:
+#     command: 'test'
+#     projects: '**/[Tt]ests/*.csproj'
+#     arguments: '-c Release'
+#     testRunTitle: 'Testing'
+
+- task: PublishPipelineArtifact@1
+  displayName: publish cicd files
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/src/_cicd/'
+    artifact: 'cicd'
+    publishLocation: 'pipeline'
+
+- task: PublishBuildArtifacts@1
+  displayName: publish binaries
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'

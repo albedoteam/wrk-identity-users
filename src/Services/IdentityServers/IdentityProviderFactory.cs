@@ -1,10 +1,10 @@
-﻿using System;
-using AlbedoTeam.Identity.Contracts.Common;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using Identity.Business.Users.Services.IdentityServers.Providers.Okta;
-
-namespace Identity.Business.Users.Services.IdentityServers
+﻿namespace Identity.Business.Users.Services.IdentityServers
 {
+    using System;
+    using Abstractions;
+    using AlbedoTeam.Identity.Contracts.Common;
+    using Providers.Okta;
+
     public class IdentityProviderFactory
     {
         private readonly IServiceProvider _serviceProvider;

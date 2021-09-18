@@ -1,14 +1,11 @@
-terraform {
+﻿terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.0.0"
     }
   }
-  backend "kubernetes" {
-    secret_suffix    = "identity-business-users"
-    load_config_file = true
-  }
+  backend "kubernetes" {}
 }
 
 provider "kubernetes" {
@@ -17,7 +14,7 @@ provider "kubernetes" {
 
 resource "kubernetes_secret" "identity" {
   metadata {
-    name      = var.project_secrets_name
+    name      = "${var.environment_prefix}${var.project_secrets_name}"
     namespace = var.namespace
   }
   data = {
@@ -33,10 +30,10 @@ resource "kubernetes_secret" "identity" {
 
 resource "kubernetes_deployment" "identity" {
   metadata {
-    name      = var.project_name
+    name      = "${var.environment_prefix}${var.project_name}"
     namespace = var.namespace
     labels = {
-      app = var.project_label
+      app = "${var.environment_prefix}${var.project_label}"
     }
   }
 
@@ -44,13 +41,13 @@ resource "kubernetes_deployment" "identity" {
     replicas = var.project_replicas_count
     selector {
       match_labels = {
-        app = var.project_name
+        app = "${var.environment_prefix}${var.project_name}"
       }
     }
     template {
       metadata {
         labels = {
-          app = var.project_name
+          app = "${var.environment_prefix}${var.project_name}"
         }
       }
       spec {
@@ -59,15 +56,15 @@ resource "kubernetes_deployment" "identity" {
         }
         container {
           image             = "${var.do_registry_name}/${var.project_name}:${var.project_image_tag}"
-          name              = "${var.project_name}-container"
+          name              = "${var.environment_prefix}${var.project_name}-container"
           image_pull_policy = "Always"
           resources {
             limits = {
-              cpu    = "250m"
-              memory = "100Mi"
+              cpu    = "350m"
+              memory = "150Mi"
             }
             requests = {
-              cpu    = "125m"
+              cpu    = "50m"
               memory = "50Mi"
             }
           }
@@ -77,7 +74,7 @@ resource "kubernetes_deployment" "identity" {
           }
           env_from {
             secret_ref {
-              name = var.project_secrets_name
+              name = "${var.environment_prefix}${var.project_secrets_name}"
             }
           }
         }
