@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Mappers.Abstractions
+﻿namespace Identity.Business.Users.Mappers.Abstractions
 {
+    using System.Collections.Generic;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using AlbedoTeam.Sdk.DataLayerAccess.Utils.Query;
+    using Models;
+
     public interface IUserMapper
     {
         // request to model
@@ -13,5 +14,8 @@ namespace Identity.Business.Users.Mappers.Abstractions
         // model to response
         UserResponse MapModelToResponse(User model);
         List<UserResponse> MapModelToResponse(List<User> model);
+
+        // request to query
+        QueryParams RequestToQuery(ListUsers request);
     }
 }

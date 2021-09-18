@@ -11,35 +11,34 @@
     using Models;
     using Services.Accounts;
     using Services.Communications;
-    using Services.IdentityServers.Abstractions;
 
-    public class SetUserPasswordConsumer : IConsumer<SetUserPassword>
+    public class ResendFirstAccessEmailConsumer : IConsumer<ResendFirstAccessEmail>
     {
         private readonly IAccountService _accountService;
         private readonly ICommunicationService _communicationService;
-        private readonly IIdentityServerService _identityServer;
-        private readonly ILogger<SetUserPasswordConsumer> _logger;
-        private readonly IUserRepository _repository;
+        private readonly ILogger<ResendFirstAccessEmailConsumer> _logger;
+        private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
+        private readonly IUserRepository _userRepository;
 
-        public SetUserPasswordConsumer(
+        public ResendFirstAccessEmailConsumer(
+            ICommunicationService communicationService,
             IAccountService accountService,
-            IIdentityServerService identityServer,
-            IUserRepository repository,
-            ILogger<SetUserPasswordConsumer> logger,
-            ICommunicationService communicationService)
+            ILogger<ResendFirstAccessEmailConsumer> logger,
+            IUserRepository userRepository,
+            IPasswordRecoveryRepository passwordRecoveryRepository)
         {
-            _accountService = accountService;
-            _identityServer = identityServer;
-            _repository = repository;
-            _logger = logger;
             _communicationService = communicationService;
+            _accountService = accountService;
+            _logger = logger;
+            _userRepository = userRepository;
+            _passwordRecoveryRepository = passwordRecoveryRepository;
         }
 
-        public async Task Consume(ConsumeContext<SetUserPassword> context)
+        public async Task Consume(ConsumeContext<ResendFirstAccessEmail> context)
         {
-            if (!context.Message.Id.IsValidObjectId())
+            if (!context.Message.UserId.IsValidObjectId())
             {
-                _logger.LogError("The User ID does not have a valid ObjectId format {UserId}", context.Message.Id);
+                _logger.LogError("The User ID does not have a valid ObjectId format {UserId}", context.Message.UserId);
                 return;
             }
 
@@ -51,38 +50,36 @@
                 return;
             }
 
-            var user = await _repository.FindById(context.Message.AccountId, context.Message.Id);
+            var user = await _userRepository.FindById(context.Message.AccountId, context.Message.UserId);
             if (user is null)
             {
-                _logger.LogError("User not found for id {UserId}", context.Message.Id);
+                _logger.LogError("User not found for id {UserId}", context.Message.UserId);
                 return;
             }
 
-            var updated = await _identityServer
-                .UserProvider(user.Provider)
-                .SetPassword(user.ProviderId, context.Message.Password);
-
-            if (!updated)
+            var pwdRecovery = await _passwordRecoveryRepository.InsertOne(new PasswordRecovery
             {
-                _logger.LogError("Password change for user {UserId} failed", context.Message.Id);
-                return;
-            }
+                AccountId = context.Message.AccountId,
+                UserId = user.Id.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddDays(3),
+                ValidationToken = new Random().Next(0, 999999).ToString("D6")
+            });
 
-            await SendEmail(context, user);
+            await SendEmail(context, user, pwdRecovery.ValidationToken);
 
-            await context.Publish<UserPasswordSetted>(new
+            await context.Publish<FirstAccessEmailResent>(new
             {
                 context.Message.AccountId,
-                context.Message.Id,
-                SettedAt = DateTime.UtcNow
+                context.Message.UserId,
+                ResentAt = DateTime.UtcNow
             });
         }
 
-        private async Task SendEmail(ConsumeContext<SetUserPassword> context, User user)
+        private async Task SendEmail(ConsumeContext<ResendFirstAccessEmail> context, User user, string token)
         {
             var rule = await _communicationService.GetCommunicationRule(
                 context.Message.AccountId,
-                CommunicationEvent.OnPasswordChanged);
+                CommunicationEvent.OnUserCreated);
 
             var redirectUrl = _communicationService.FormatRedirectUrl(rule, context.Message.AccountId);
 
@@ -90,7 +87,7 @@
             {
                 context.Message.AccountId,
                 rule.TemplateId,
-                Subject = "Redefinição de senha realizada",
+                Subject = "Bem vindo!",
                 Destinations = new[]
                 {
                     new
@@ -105,6 +102,16 @@
                     {
                         Key = "username",
                         Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "login",
+                        Value = user.Username
+                    },
+                    new
+                    {
+                        Key = "token",
+                        Value = token
                     },
                     new
                     {

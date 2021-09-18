@@ -1,25 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
-using AlbedoTeam.Identity.Contracts.Commands;
-using AlbedoTeam.Identity.Contracts.Events;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Models;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-
-namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
+    using System;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Identity.Contracts.Commands;
+    using AlbedoTeam.Identity.Contracts.Events;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using Db.Abstractions;
+    using MassTransit;
+    using Microsoft.Extensions.Logging;
+    using Models;
+    using MongoDB.Driver;
+    using Services.Accounts;
+    using Services.IdentityServers.Abstractions;
+
     public class RemoveGroupFromUserConsumer : IConsumer<RemoveGroupFromUser>
     {
         private readonly IAccountService _accountService;
+        private readonly IRequestClient<GetGroup> _client;
         private readonly IIdentityServerService _identityServer;
         private readonly ILogger<RemoveGroupFromUserConsumer> _logger;
-        private readonly IRequestClient<GetGroup> _client;
         private readonly IUserRepository _userRepository;
 
         public RemoveGroupFromUserConsumer(
@@ -83,7 +83,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
 
             await _identityServer
                 .UserProvider(user.Provider)
-                .RemoveGroup(context.Message.UserId, group.ProviderId);
+                .RemoveGroup(user.ProviderId, group.ProviderId);
 
             user.Groups.Remove(context.Message.GroupId);
 
@@ -101,7 +101,7 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 RemovedAt = DateTime.UtcNow
             });
         }
-        
+
         private async Task<GroupResponse> RequestGroup(string accountId, string groupId)
         {
             var (groupResponse, errorResoponse) = await _client.GetResponse<GroupResponse, ErrorResponse>(new

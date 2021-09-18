@@ -1,6 +1,7 @@
-﻿namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.PasswordRecoveryConsumers
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using AlbedoTeam.Communications.Contracts.Commands;
     using AlbedoTeam.Identity.Contracts.Commands;
@@ -11,35 +12,34 @@
     using Models;
     using Services.Accounts;
     using Services.Communications;
-    using Services.IdentityServers.Abstractions;
 
-    public class SetUserPasswordConsumer : IConsumer<SetUserPassword>
+    public class CreatePasswordRecoveryConsumer : IConsumer<CreatePasswordRecovery>
     {
         private readonly IAccountService _accountService;
         private readonly ICommunicationService _communicationService;
-        private readonly IIdentityServerService _identityServer;
-        private readonly ILogger<SetUserPasswordConsumer> _logger;
+        private readonly ILogger<CreatePasswordRecoveryConsumer> _logger;
+        private readonly IPasswordRecoveryRepository _passwordRecoveryRepository;
         private readonly IUserRepository _repository;
 
-        public SetUserPasswordConsumer(
+        public CreatePasswordRecoveryConsumer(
             IAccountService accountService,
-            IIdentityServerService identityServer,
+            ILogger<CreatePasswordRecoveryConsumer> logger,
             IUserRepository repository,
-            ILogger<SetUserPasswordConsumer> logger,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            IPasswordRecoveryRepository passwordRecoveryRepository)
         {
             _accountService = accountService;
-            _identityServer = identityServer;
-            _repository = repository;
             _logger = logger;
+            _repository = repository;
             _communicationService = communicationService;
+            _passwordRecoveryRepository = passwordRecoveryRepository;
         }
 
-        public async Task Consume(ConsumeContext<SetUserPassword> context)
+        public async Task Consume(ConsumeContext<CreatePasswordRecovery> context)
         {
-            if (!context.Message.Id.IsValidObjectId())
+            if (string.IsNullOrWhiteSpace(context.Message.UserEmail))
             {
-                _logger.LogError("The User ID does not have a valid ObjectId format {UserId}", context.Message.Id);
+                _logger.LogError("The User email is required!");
                 return;
             }
 
@@ -51,38 +51,41 @@
                 return;
             }
 
-            var user = await _repository.FindById(context.Message.AccountId, context.Message.Id);
+            var user = (await _repository.FilterBy(
+                context.Message.AccountId,
+                u => u.Email == context.Message.UserEmail)).FirstOrDefault();
+
             if (user is null)
             {
-                _logger.LogError("User not found for id {UserId}", context.Message.Id);
+                _logger.LogWarning("User not found for email {UserEmail}", context.Message.UserEmail);
                 return;
             }
 
-            var updated = await _identityServer
-                .UserProvider(user.Provider)
-                .SetPassword(user.ProviderId, context.Message.Password);
-
-            if (!updated)
+            var pwdRecovery = await _passwordRecoveryRepository.InsertOne(new PasswordRecovery
             {
-                _logger.LogError("Password change for user {UserId} failed", context.Message.Id);
-                return;
-            }
+                AccountId = context.Message.AccountId,
+                UserId = user.Id.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddHours(3),
+                ValidationToken = new Random().Next(0, 999999).ToString("D6")
+            });
 
-            await SendEmail(context, user);
+            await SendEmail(context, user, pwdRecovery.ValidationToken);
 
-            await context.Publish<UserPasswordSetted>(new
+            await context.Publish<PasswordRecoveryCreated>(new
             {
                 context.Message.AccountId,
-                context.Message.Id,
-                SettedAt = DateTime.UtcNow
+                UserId = user.Id.ToString(),
+                pwdRecovery.ValidationToken,
+                pwdRecovery.CreatedAt,
+                ExpiredAt = pwdRecovery.ExpiresAt
             });
         }
 
-        private async Task SendEmail(ConsumeContext<SetUserPassword> context, User user)
+        private async Task SendEmail(ConsumeContext<CreatePasswordRecovery> context, User user, string token)
         {
             var rule = await _communicationService.GetCommunicationRule(
                 context.Message.AccountId,
-                CommunicationEvent.OnPasswordChanged);
+                CommunicationEvent.OnPasswordChangeRequested);
 
             var redirectUrl = _communicationService.FormatRedirectUrl(rule, context.Message.AccountId);
 
@@ -90,7 +93,7 @@
             {
                 context.Message.AccountId,
                 rule.TemplateId,
-                Subject = "Redefinição de senha realizada",
+                Subject = "Solicitação de redefinição de senha",
                 Destinations = new[]
                 {
                     new
@@ -105,6 +108,11 @@
                     {
                         Key = "username",
                         Value = user.FirstName
+                    },
+                    new
+                    {
+                        Key = "token",
+                        Value = token
                     },
                     new
                     {

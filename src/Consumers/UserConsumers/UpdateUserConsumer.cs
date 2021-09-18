@@ -1,18 +1,18 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using AlbedoTeam.Identity.Contracts.Common;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Mappers.Abstractions;
-using Identity.Business.Users.Models;
-using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using MassTransit;
-using MongoDB.Driver;
-
-namespace Identity.Business.Users.Consumers.UserConsumers
+﻿namespace Identity.Business.Users.Consumers.UserConsumers
 {
+    using System.Linq;
+    using System.Threading.Tasks;
+    using AlbedoTeam.Identity.Contracts.Common;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using Db.Abstractions;
+    using Mappers.Abstractions;
+    using MassTransit;
+    using Models;
+    using MongoDB.Driver;
+    using Services.Accounts;
+    using Services.IdentityServers.Abstractions;
+
     public class UpdateUserConsumer : IConsumer<UpdateUser>
     {
         private readonly IAccountService _accountService;
@@ -65,16 +65,26 @@ namespace Identity.Business.Users.Consumers.UserConsumers
                 return;
             }
 
+            if (!user.Active)
+            {
+                await context.RespondAsync<ErrorResponse>(new
+                {
+                    ErrorType = ErrorType.InvalidOperation,
+                    ErrorMessage = $"User id {context.Message.Id} is not active to be updated"
+                });
+                return;
+            }
+
             var exists = (await _repository.FilterBy(
                 context.Message.AccountId,
                 g => g.Username.Equals(context.Message.Username))).Any();
 
-            if (exists)
+            if (!exists)
             {
                 await context.RespondAsync<ErrorResponse>(new
                 {
                     ErrorType = ErrorType.AlreadyExists,
-                    ErrorMessage = $"User with usernname {context.Message.Username} already exists"
+                    ErrorMessage = $"User with usernname {context.Message.Username} do not exists"
                 });
                 return;
             }

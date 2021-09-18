@@ -1,0 +1,2 @@
+secret_suffix    = "prd-identity-business-users"
+load_config_file = true

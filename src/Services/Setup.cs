@@ -1,16 +1,18 @@
-﻿using Identity.Business.Users.Services.Accounts;
-using Identity.Business.Users.Services.IdentityServers;
-using Identity.Business.Users.Services.IdentityServers.Abstractions;
-using Identity.Business.Users.Services.IdentityServers.Providers.Okta;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Identity.Business.Users.Services
+﻿namespace Identity.Business.Users.Services
 {
+    using Accounts;
+    using Communications;
+    using IdentityServers;
+    using IdentityServers.Abstractions;
+    using IdentityServers.Providers.Okta;
+    using Microsoft.Extensions.DependencyInjection;
+
     public static class Setup
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<ICommunicationService, CommunicationService>();
 
             // identity server service and factory
             services.AddScoped<IIdentityServerService, IdentityServerService>();

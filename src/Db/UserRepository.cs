@@ -1,10 +1,10 @@
-﻿using AlbedoTeam.Sdk.DataLayerAccess;
-using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
-using Identity.Business.Users.Db.Abstractions;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Db
+﻿namespace Identity.Business.Users.Db
 {
+    using Abstractions;
+    using AlbedoTeam.Sdk.DataLayerAccess;
+    using AlbedoTeam.Sdk.DataLayerAccess.Abstractions;
+    using Models;
+
     public class UserRepository : BaseRepositoryWithAccount<User>, IUserRepository
     {
         public UserRepository(

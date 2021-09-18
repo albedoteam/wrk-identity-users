@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-using AlbedoTeam.Identity.Contracts.Requests;
-using AlbedoTeam.Identity.Contracts.Responses;
-using AutoMapper;
-using Identity.Business.Users.Mappers.Abstractions;
-using Identity.Business.Users.Models;
-
-namespace Identity.Business.Users.Mappers
+﻿namespace Identity.Business.Users.Mappers
 {
+    using System.Collections.Generic;
+    using Abstractions;
+    using AlbedoTeam.Identity.Contracts.Requests;
+    using AlbedoTeam.Identity.Contracts.Responses;
+    using AlbedoTeam.Sdk.DataLayerAccess.Utils.Query;
+    using AutoMapper;
+    using Models;
+
     public class UserMapper : IUserMapper
     {
         private readonly IMapper _mapper;
@@ -22,7 +23,9 @@ namespace Identity.Business.Users.Mappers
                 cfg.CreateMap<User, UserResponse>(MemberList.Destination)
                     .ForMember(t => t.Id, opt => opt.MapFrom(o => o.Id.ToString()));
 
-                // model to event
+                // request -> query
+                cfg.CreateMap<ListUsers, QueryParams>(MemberList.Destination)
+                    .ForMember(l => l.Sorting, opt => opt.MapFrom(o => o.Sorting.ToString()));
             });
 
             _mapper = config.CreateMapper();
@@ -41,6 +44,11 @@ namespace Identity.Business.Users.Mappers
         public List<UserResponse> MapModelToResponse(List<User> model)
         {
             return _mapper.Map<List<User>, List<UserResponse>>(model);
+        }
+
+        public QueryParams RequestToQuery(ListUsers request)
+        {
+            return _mapper.Map<ListUsers, QueryParams>(request);
         }
     }
 }
