@@ -1,4 +1,5 @@
 ﻿// main/common variables
+
 variable "namespace" {
   description = "Albedo Team product's namespace"
   type        = string
@@ -15,7 +16,7 @@ variable "do_registry_name" {
 variable "project_secrets_name" {
   description = "Secrets name"
   type        = string
-  default     = "identity-business-users-secrets" 
+  default     = "identity-business-users-secrets"
 }
 
 variable "project_name" {
@@ -39,7 +40,11 @@ variable "project_image_tag" {
 variable "project_replicas_count" {
   description = "Number of container replicas to provision."
   type        = number
-  default     = 1
+}
+
+variable "environment_prefix" {
+  description = "Host environment to naming pattern"
+  type        = string
 }
 
 // project settings variables
