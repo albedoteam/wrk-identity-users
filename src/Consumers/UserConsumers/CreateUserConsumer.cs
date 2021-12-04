@@ -109,7 +109,7 @@
             var accountName = account.Name.Replace(" ", "_").Replace(".", "_").ToLower();
             var firstNameOnLogin = model.FirstName.Replace(" ", "_").Replace(".", "_").ToLower();
             var lastNameOnLogin = model.LastName.Replace(" ", "_").Replace(".", "_").ToLower();
-            model.UsernameAtProvider = $"{firstNameOnLogin}_{lastNameOnLogin}@{accountName}";
+            model.UsernameAtProvider = $"{firstNameOnLogin}_{lastNameOnLogin}@{accountName}.auth";
 
             var userProviderId = await _identityServer
                 .UserProvider(context.Message.Provider)
