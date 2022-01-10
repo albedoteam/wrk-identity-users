@@ -61,7 +61,7 @@ resource "kubernetes_deployment" "identity" {
           resources {
             limits = {
               cpu    = "350m"
-              memory = "150Mi"
+              memory = "250Mi"
             }
             requests = {
               cpu    = "50m"
